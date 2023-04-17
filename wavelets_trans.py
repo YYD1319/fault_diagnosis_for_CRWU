@@ -10,7 +10,7 @@ Original file is located at
 import matplotlib.pyplot as plt
 import numpy as np
 import pywt
-import preprocess
+from utils import preprocess
 import time
 
 path = r'./datasets/12k_DE_data/0HP'

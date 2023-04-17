@@ -9,8 +9,8 @@ Original file is located at
 import torch
 from torch import nn
 import torch.optim as optim
-import train
-import load_dataset
+from utils import train, load_dataset
+
 
 class LSTMNet(nn.Module):
     # https://blog.csdn.net/Cyril_KI/article/details/124283845
@@ -43,40 +43,40 @@ class LSTMNet(nn.Module):
         return out
 
 
-class Config:
-    def __init__(self):
-        # self.seq_length = 1  # 序列长度
-        # self.path = r"./datasets/48k_DE_data/0HP"  # 数据集路径
-        self.path = None
-        self.input_size = 864  # 特征长度
-        self.hidden_dim = 128  # 隐藏单元数
-        self.layer_dim = 1  # 隐藏层数
-        self.dropout = 0.5  # dropout率
-        self.num_classes = 10  # 分类数
-        self.number = 1000  # 每类样本数
-        self.batch_size = 128  # 批量大小
-        self.normal = True  # 数据集是否归一化
-        self.rate = [0.5, 0.25, 0.25]  # 训练集:验证集:测试集
-        self.enc = True  # 是否采用数据增强
-        self.enc_step = 28  # 数据增强步长
-        # self.is_shuffle = True  # 数据集是否随机
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 设备
-        self.lr = 0.001  # 学习率
-        self.epochs = 10
-        self.best_model_path = r"./models/lstm_v1.pt"
+config = {
+    # self.seq_length = 1  # 序列长度
+    # self.path = r"./datasets/48k_DE_data/0HP"  # 数据集路径
+    "path": None,  # 数据集路径
+    "input_size": 864,  # 特征长度
+    "hidden_dim": 128,  # 隐藏单元数
+    "layer_dim": 1,  # 隐藏层数
+    "dropout": 0.5,  # dropout率
+    "num_classes": 10,  # 分类数
+    "number": 1000,  # 每类样本数
+    "batch_size": 128,  # 批量大小
+    "normal": True,  # 数据集是否归一化
+    "rate": [0.5, 0.25, 0.25],  # 训练集:验证集:测试集
+    "enc": True,  # 是否采用数据增强
+    "enc_step": 28,  # 数据增强步长
+    # "is_shuffle": True, # 数据集是否随机
+    "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),  # 设备
+    "learning_rate": 0.001,  # 学习率
+    "epochs": 10,  # 训练轮数
+    "best_model_path": r"./models/lstm_v1.pt",  # 最优模型保存路径
+    "tune": False
+}
 
 
 def lstm_v1(path):
-    cfg = Config()
-    cfg.path = path
-    net = LSTMNet(cfg.input_size, cfg.hidden_dim, cfg.layer_dim, cfg.num_classes, cfg.dropout)
-    net.to(cfg.device)
+    config["path"] = path
+    net = LSTMNet(config["input_size"], config["hidden_dim"], config["layer_dim"], config["num_classes"], config["dropout"])
+    net.to(config["device"])
     loss = nn.CrossEntropyLoss(reduction="none")
-    updater = optim.Adam(net.parameters(), lr=cfg.lr)
+    updater = optim.Adam(net.parameters(), lr=config["lr"])
 
-    train_iter, test_iter, valid_iter = load_dataset.load_1Ddata(cfg)
+    train_iter, test_iter, valid_iter = load_dataset.load_1Ddata(config)
 
-    train.train(net, train_iter, valid_iter, loss, updater, cfg)
+    train.train(net, train_iter, valid_iter, loss, updater, config)
 
 
 if __name__ == "__main__":

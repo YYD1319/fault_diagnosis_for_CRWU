@@ -6,7 +6,7 @@ from torchvision import datasets, transforms
 
 from sklearn.model_selection import train_test_split
 import numpy as np
-import preprocess
+from utils import preprocess
 
 
 def load_1Ddata(cfg):
@@ -15,13 +15,13 @@ def load_1Ddata(cfg):
         dataset = data.TensorDataset(*data_arrays)
         return data.DataLoader(dataset, batch_size, shuffle=is_train)
 
-    train_X, train_Y, valid_X, valid_Y, test_X, test_Y = preprocess.prepro(d_path=cfg.path,
-                                                                           length=cfg.input_size,
-                                                                           number=cfg.number,
-                                                                           normal=cfg.normal,
-                                                                           rate=cfg.rate,
-                                                                           enc=cfg.enc,
-                                                                           enc_step=cfg.enc_step)
+    train_X, train_Y, valid_X, valid_Y, test_X, test_Y = preprocess.prepro(d_path=cfg["path"],
+                                                                           length=cfg["input_size"],
+                                                                           number=cfg["number"],
+                                                                           normal=cfg["normal"],
+                                                                           rate=cfg["rate"],
+                                                                           enc=cfg["enc"],
+                                                                           enc_step=cfg["enc_step"])
 
     train_X, valid_X, test_X = train_X[:, np.newaxis, :], valid_X[:, np.newaxis, :], test_X[:, np.newaxis, :]
     # 添加维度 (7000, 864) -> (7000, 1, 864) [batchsize, input_size, max_length] [批量大小N， 序列长度L, 特征长度Hin]
@@ -32,9 +32,9 @@ def load_1Ddata(cfg):
                                                          torch.tensor(valid_Y, dtype=torch.long), \
                                                          torch.tensor(test_X, dtype=torch.float), \
                                                          torch.tensor(test_Y, dtype=torch.long)
-    train_iter = load_array((x_train, y_train), cfg.batch_size)
-    test_iter = load_array((x_test, y_test), cfg.batch_size)
-    valid_iter = load_array((x_valid, y_valid), cfg.batch_size)
+    train_iter = load_array((x_train, y_train), cfg["batch_size"])
+    test_iter = load_array((x_test, y_test), cfg["batch_size"])
+    valid_iter = load_array((x_valid, y_valid), cfg["batch_size"])
 
     return train_iter, test_iter, valid_iter
 
@@ -74,4 +74,4 @@ def load_2Ddata(cfg):
 
         return train_iter, test_iter
 
-    return load_data(cfg.path, cfg.size, cfg.val_percentage, cfg.batch_size)
+    return load_data(cfg["path"], cfg["size"], cfg["val_percentage"], cfg["batch_size"])

@@ -166,7 +166,7 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
 
 
 if __name__ == "__main__":
-    path = "./datasets/48k_DE_data/0HP"
+    path = "../datasets/48k_DE_data/0HP"
     #path = '/home/zjl/wdcnn_bearning_fault_diagnosis/data/0HP'
     train_X, train_Y, valid_X, valid_Y, test_X, test_Y = prepro(d_path=path,
                                                                 length=864,
