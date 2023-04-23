@@ -33,6 +33,7 @@ Conv_2D_v1 = nn.Sequential(
 )
 
 config = {
+    "name": "2dcnn",
     "path": None,  # 数据集路径
     "size": 52,  # 图像大小
     "val_percentage": 0.25,  # 验证集占比

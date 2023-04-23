@@ -21,38 +21,6 @@ def draw_curve(x_val, y_val, x_label, y_label, title, x2_val=None, y2_val=None, 
     plt.close()
 
 
-def draw_confusion(net, valid_iter, device):
-    Y_hat, Y = [], []
-    if isinstance(net, torch.nn.Module):
-        net.eval()
-    with torch.no_grad():
-        for X, y in valid_iter:
-            X, y = X.to(device), y.to(device)
-            y_hat = net(X)
-            Y_hat.append(y_hat)
-            Y.append(y)
-    Y_hat = torch.cat(Y_hat, dim=0).cpu().numpy().argmax(1)
-    Y = torch.cat(Y, dim=0).cpu().numpy()
-    # print(Y.shape, Y_hat.shape)
-    con_mat = confusion_matrix(Y_hat, Y)
-    # print(con_mat)
-    classes = list(set(Y))
-    classes.sort()
-    plt.imshow(con_mat, cmap=plt.cm.Reds)
-    indices = range(len(con_mat))
-    plt.xticks(indices, classes)
-    plt.yticks(indices, classes)
-    plt.colorbar()
-    plt.xlabel('pre')
-    plt.ylabel('true')
-    for first_index in range(len(con_mat)):
-        for second_index in range(len(con_mat[first_index])):
-            plt.text(first_index, second_index, con_mat[second_index][first_index], va='center', ha='center')
-    plt.title("confusion matrix")
-    plt.show()
-    plt.close()
-
-
 def accuracy(y_hat, y):
     return int((y_hat.argmax(1) == y).sum())
 
@@ -114,8 +82,6 @@ def train(net, train_iter, valid_iter, loss, updater, cfg):
         train_time = (time.time() - epoch_start)
         if cfg["show"]:
             print("%d\t\t%f\t%f\t%f\t%f\t%.6fs" % (epoch + 1, train_loss, test_loss, train_acc, test_acc, train_time))
-            if epoch == cfg["epochs"] - 1:
-                draw_confusion(net, valid_iter, cfg["device"])
 
         train_loss_list.append(train_loss.cpu().detach().numpy())
         test_loss_list.append(test_loss.cpu().detach().numpy())
@@ -126,10 +92,10 @@ def train(net, train_iter, valid_iter, loss, updater, cfg):
 
     # plt.subplots_adjust(wspace=0.2,hspace=0.5)
     if cfg["show"]:
-        draw_curve(range(1, cfg["epochs"] + 1), train_loss_list, 'epochs', 'loss', 'training and validation loss',
+        draw_curve(range(1, cfg["epochs"] + 1), train_loss_list, 'epochs', 'loss', 'training and validation loss(' + cfg["name"] + ')',
                    range(1, cfg["epochs"] + 1), test_loss_list,
                    ['train', 'valid'])
-        draw_curve(range(1, cfg["epochs"] + 1), train_acc_list, 'epochs', 'acc', 'training and validation accuracy',
+        draw_curve(range(1, cfg["epochs"] + 1), train_acc_list, 'epochs', 'acc', 'training and validation accuracy(' + cfg["name"] + ')',
                    range(1, cfg["epochs"] + 1), test_acc_list,
                    ['train', 'valid'])
     if cfg["tune"]:

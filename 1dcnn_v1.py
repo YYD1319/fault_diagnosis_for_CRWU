@@ -34,6 +34,7 @@ class CNN1D(nn.Module):
         return x
 
 config = {
+    "name": "1dcnn",
     "path": None,  # 数据集路径
     "input_size": 864,  # 特征长度
     "number": 1000,  # 每类样本数
@@ -45,40 +46,44 @@ config = {
     "enc_step": 28,  # 数据增强步长
     # "is_shuffle": True, # 数据集是否随机
     "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),  # 设备
-    "lr": 0.0019,  # 学习率
-    "epochs": 50,
+    "lr": 0.001,  # 学习率
+    "epochs": 30,
     "best_model_path": r"./models/1dcnn_v1.pt",
     "show": True,
     "tune": False,
 }
 
 
-def _1dcnn_v1(config):
-    config["path"] = path
-
+def train_1dcnn_v1(config, train_iter, valid_iter,):
     net = CNN1D(config["dropout"])
     net.to(config["device"])
     loss = nn.CrossEntropyLoss(reduction="none")
     updater = optim.Adam(net.parameters(), lr=config["lr"])
 
-    train_iter, test_iter, valid_iter = load_dataset.load_1Ddata(config)
-
     train.train(net, train_iter, valid_iter, loss, updater, config)
 
-
-if __name__ == "__main__":
-    path = r"./datasets/12k_DE_data/0HP/"
-    config["path"] = path
-    # _1dcnn_v1(config)
-
-    train_iter, test_iter, valid_iter = load_dataset.load_1Ddata(config)
-
+def test_1dcnn_v1(config, test_iter):
     pt = torch.load(config["best_model_path"])
     net = CNN1D(config["dropout"])
     net.load_state_dict(pt["model_state_dict"])
     net.to(config["device"])
 
     analyze.analyze(net, test_iter, config)
+
+def train_or_test(config, train=None, test=None):
+    train_iter, test_iter, valid_iter = load_dataset.load_1Ddata(config)
+
+    if train:
+        train_1dcnn_v1(config, train_iter, valid_iter)
+    if test:
+        test_1dcnn_v1(config, test_iter)
+
+
+
+if __name__ == "__main__":
+    path = r"./datasets/12k_DE_data/0HP/"
+    config["path"] = path
+    train_or_test(config, train=False, test=True)
 
 
 

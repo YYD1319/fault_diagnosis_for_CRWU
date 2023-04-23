@@ -46,6 +46,7 @@ class LSTMNet(nn.Module):
 config = {
     # self.seq_length = 1  # 序列长度
     # self.path = r"./datasets/48k_DE_data/0HP"  # 数据集路径
+    "name": "lstn",
     "path": None,  # 数据集路径
     "input_size": 864,  # 特征长度
     "hidden_dim": 128,  # 隐藏单元数
