@@ -1,6 +1,6 @@
 import torch
 import torch.utils.data as data
-from torch.utils.data import SubsetRandomSampler
+from torch.utils.data import SubsetRandomSampler, RandomSampler
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -56,7 +56,7 @@ def load_2Ddata(cfg):
         # https://blog.csdn.net/qq_39355550/article/details/82688014
         return train_sampler, val_sampler
 
-    def load_data(path, size, val_percentage, batch_size):
+    def load_data(train_path, valid_path, test_path, size, val_percentage, batch_size):
         data_transfrom = transforms.Compose([
             # transforms.Grayscale(),
             transforms.Resize((size, size)),
@@ -64,14 +64,20 @@ def load_2Ddata(cfg):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        dataset = datasets.ImageFolder(path, transform=data_transfrom)  # 没有transform，先看看取得的原始图像数据
+        # dataset = datasets.ImageFolder(train_path, transform=data_transfrom)
 
-        train_sampler, val_sampler = dataset_sampler(dataset, val_percentage)
+        train_dataset = datasets.ImageFolder(train_path, transform=data_transfrom)  # 没有transform，先看看取得的原始图像数据
+        valid_dataset = datasets.ImageFolder(valid_path, transform=data_transfrom)
+        test_dataset = datasets.ImageFolder(test_path, transform=data_transfrom)
+
+
+        # train_sampler, val_sampler = dataset_sampler(dataset, val_percentage)
 
         # dataloader定义
-        train_iter = DataLoader(dataset, batch_size=batch_size, num_workers=0, sampler=train_sampler)
-        test_iter = DataLoader(dataset, batch_size=batch_size, num_workers=0, sampler=val_sampler)
+        train_iter = DataLoader(train_dataset, batch_size=batch_size, num_workers=0)
+        valid_iter = DataLoader(valid_dataset, batch_size=batch_size, num_workers=0)
+        test_iter = DataLoader(test_dataset, batch_size=batch_size, num_workers=0)
 
-        return train_iter, test_iter
+        return train_iter, valid_iter, test_iter
 
-    return load_data(cfg["path"], cfg["size"], cfg["val_percentage"], cfg["batch_size"])
+    return load_data(cfg["train_path"], cfg["valid_path"], cfg["test_path"], cfg["size"], cfg["val_percentage"], cfg["batch_size"])

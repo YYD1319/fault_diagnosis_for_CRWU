@@ -34,7 +34,9 @@ Conv_2D_v1 = nn.Sequential(
 
 config = {
     "name": "2dcnn",
-    "path": None,  # 数据集路径
+    "train_path": None,  # 数据集路径
+    "valid_path": None,
+    "test_path": None,
     "size": 52,  # 图像大小
     "val_percentage": 0.25,  # 验证集占比
     "batch_size": 128,  # 批量大小
@@ -47,30 +49,39 @@ config = {
     "tune": False,
 }
 
-def train_cwt_cnn_v1(config):
+def train_cwt_cnn_v1(config, train_iter, valid_iter):
     net = Conv_2D_v1
     # net.apply(init_constant)
 
     loss = nn.CrossEntropyLoss(reduction="none")
     updater = optim.Adam(net.parameters(), lr=config["lr"])
 
-    train_iter, test_iter = load_dataset.load_2Ddata(config)
+    train.train(net, train_iter, valid_iter, loss, updater, config)
 
-    train.train(net, train_iter, test_iter, loss, updater, config)
-
-
-
-if __name__ == "__main__":
-    # path = r"./cwt_picture/cmor3-3/train"
-    path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\1HP\cmor3-3\test"
-    config["path"] = path
-    # train_cwt_cnn_v1(config)
-
-    train_iter, test_iter = load_dataset.load_2Ddata(config)
-
+def test_cwt_cnn_v1(config, test_iter):
     pt = torch.load(config["best_model_path"])
     net = Conv_2D_v1
     net.load_state_dict(pt["model_state_dict"])
     net.to(config["device"])
 
     analyze.analyze(net, test_iter, config)
+def train_or_test(config, train=None, test=None):
+    train_iter, valid_iter, test_iter = load_dataset.load_2Ddata(config)
+
+    if train:
+        train_cwt_cnn_v1(config, train_iter, valid_iter)
+    if test:
+        test_cwt_cnn_v1(config, test_iter)
+
+if __name__ == "__main__":
+    train_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\3HP\cmor3-3\train"
+    valid_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\3HP\cmor3-3\valid"
+    test_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\3HP\cmor3-3\test"
+
+    config["train_path"] = train_path
+    config["valid_path"] = valid_path
+    config["test_path"] = test_path
+
+    train_or_test(config, train=False, test=True)
+
+

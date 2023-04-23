@@ -54,7 +54,7 @@ config = {
 }
 
 
-def train_1dcnn_v1(config, train_iter, valid_iter,):
+def train_1dcnn_v1(config, train_iter, valid_iter):
     net = CNN1D(config["dropout"])
     net.to(config["device"])
     loss = nn.CrossEntropyLoss(reduction="none")
