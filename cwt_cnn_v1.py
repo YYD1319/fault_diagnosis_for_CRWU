@@ -41,12 +41,12 @@ config = {
     "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),  # 设备
     "lr": 0.001,  # 学习率
     "epochs": 100,  # 训练轮数
-    "best_model_path": r"./models/cwt_cnn_smallSample.pt",  # 最优模型保存路径
+    "best_model_path": r"./models/cwt_cnn_v1.pt",  # 最优模型保存路径
     "show": True,
     "tune": False,
 }
 
-def cwt_cnn_v1(config):
+def train_cwt_cnn_v1(config):
     net = Conv_2D_v1
     # net.apply(init_constant)
 
@@ -61,15 +61,15 @@ def cwt_cnn_v1(config):
 
 if __name__ == "__main__":
     # path = r"./cwt_picture/cmor3-3/train"
-    path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\29_0HP_cmor3-3"
+    path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\1HP\cmor3-3\test"
     config["path"] = path
-    cwt_cnn_v1(config)
+    # train_cwt_cnn_v1(config)
 
-    # train_iter, test_iter = load_dataset.load_2Ddata(config)
-    #
-    # pt = torch.load(config["best_model_path"])
-    # net = Conv_2D_v1
-    # net.load_state_dict(pt["model_state_dict"])
-    # net.to(config["device"])
-    #
-    # analyze.analyze(net, test_iter, config)
+    train_iter, test_iter = load_dataset.load_2Ddata(config)
+
+    pt = torch.load(config["best_model_path"])
+    net = Conv_2D_v1
+    net.load_state_dict(pt["model_state_dict"])
+    net.to(config["device"])
+
+    analyze.analyze(net, test_iter, config)
