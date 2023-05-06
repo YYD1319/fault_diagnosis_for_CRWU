@@ -2,7 +2,9 @@
 import torch
 from torch import nn
 import torch.optim as optim
-from utils import train, load_dataset, analyze
+from utils import train
+from utils.train import analyze
+from utils.signal_process import load_dataset
 
 
 class CNN1D(nn.Module):
