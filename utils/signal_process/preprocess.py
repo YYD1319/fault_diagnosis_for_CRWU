@@ -41,7 +41,9 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
             file_keys = file.keys()
             for key in file_keys:
                 if 'DE' in key:  # 驱动端振动数据
+                    # print(key)
                     files[i] = file[key].ravel()
+
         return files
 
     def slice_enc(data, slice_rate=rate[1] + rate[2]):
@@ -80,14 +82,23 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
                         break
             else:
                 for j in range(samp_train):
-                    random_start = np.random.randint(low=0, high=(end_index - length))
+                    # random_start = np.random.randint(low=0, high=(end_index - length))
+                    random_start = np.random.randint(low=0, high=(all_lenght - length))
                     sample = slice_data[random_start:random_start + length]
                     Train_sample.append(sample)
             # 抓取测试数据
-            for h in range(number - samp_train):
-                random_start = np.random.randint(low=end_index, high=(all_lenght - length))
-                sample = slice_data[random_start:random_start + length]
+            # for h in range(number - samp_train):
+            #     random_start = np.random.randint(low=end_index, high=(all_lenght - length))
+            #     sample = slice_data[random_start:random_start + length]
+
+            for h in range(len(slice_data) // length):
+                random_start = np.random.randint(low=0, high=(len(slice_data) - length))
+                # 每次取j至j+length长度的数据
+                sample = slice_data[h * length:(h + 1) * length]
+                # sample = slice_data[random_start:random_start + length]
+
                 Test_Sample.append(sample)
+
             Train_Samples[i] = Train_sample
             Test_Samples[i] = Test_Sample
         return Train_Samples, Test_Samples
@@ -144,6 +155,7 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
     data = capture(original_path=d_path)
     # 将数据切分为训练集、测试集
     train, test = slice_enc(data)
+
     # 为训练集制作标签，返回X，Y
     Train_X, Train_Y = add_labels(train)
     # 为测试集制作标签，返回X，Y

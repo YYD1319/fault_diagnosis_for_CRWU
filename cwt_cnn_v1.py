@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from utils import train
+from utils.train import train
 from utils.train import analyze
 from utils.signal_process import load_dataset
 

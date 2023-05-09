@@ -3,16 +3,17 @@ import scipy.stats as stats
 from utils.signal_process.load_dataset import data_acquision
 import matplotlib.pyplot as plt
 
-def plt_raw_signal(data):
-    fig, axs = plt.subplots(1, 1, figsize=(12, 6))
+def plt_raw_signal(fig, data):
+    # fig, axs = plt.subplots(1, 1, figsize=(12, 6))
 
     # 绘制原始信号
-    axs.plot(data)
-    axs.set_title('Raw Signal')
-    axs.set_xlabel('Time')
-    axs.set_ylabel('Amplitude')
+    fig.axes[0].plot(data)
+    fig.axes[0].set_title('Raw Signal')
+    fig.axes[0].set_xlabel('Time')
+    fig.axes[0].set_ylabel('Amplitude')
 
-    plt.show()
+    # fig.show()
+    return fig
 def time_domain_analysis(data):
     # 基本统计指标
     max_value = np.max(data)
@@ -53,10 +54,10 @@ def time_domain_analysis(data):
         "方差": variance_value,
         "峭度": kurtosis_value,
         "偏度": skewness_value,
-        "峭度指标 (Crest factor)": crest_factor,
-        "波形因子 (Form factor)": form_factor,
-        "峰值因子 (Impulse factor)": impulse_factor,
-        "脉冲因子 (Margin factor)": margin_factor
+        "峭度指标": crest_factor,
+        "波形因子": form_factor,
+        "峰值因子": impulse_factor,
+        "脉冲因子": margin_factor
     }
 
 

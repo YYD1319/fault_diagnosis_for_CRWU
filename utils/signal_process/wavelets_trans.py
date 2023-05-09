@@ -30,7 +30,7 @@ def cwt_trans_for_dataset(dataset_X, dataset_Y, save_path, t, scales, wave_name,
             time0 = time.time()
     print('共保存{}张cwt图片'.format(len(dataset_X)))
 
-def cwt_trans(data, t, scales, wave_name, sampling_period):
+def cwt_trans(data, t, scales, wave_name, sampling_period, fig=None):
     [cwtmatr, frequencies] = pywt.cwt(data, scales, wave_name, sampling_period)
 
     # 输出频率计算
@@ -39,18 +39,45 @@ def cwt_trans(data, t, scales, wave_name, sampling_period):
 
     # 归一化
     # norm_cwtmatr = cwtmatr / np.sqrt(2*np.pi*frequencies.reshape(-1,1))
+    is_MyFigureCanvas = False
+    if fig is None:
+        fig, axs = plt.subplots()
+        fig.set_size_inches(864 / 100, 864 / 100)
+        # 设置图片和画布、图片和图片的间距
+        fig.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        # 将当前图形的 X Y轴主刻度设置为空
+        axs.xaxis.set_major_locator(plt.NullLocator())
+        axs.yaxis.set_major_locator(plt.NullLocator())
+        axs.axis('off')
+        # 设置或者获取轴域的边界距离（轴两端和画布顶点的距离）
+        axs.margins(0, 0)
+    else:
+        axs = fig.axes[0]
+        axs.axis('on')
+        axs.set_xlabel('time(s)')
+        axs.set_ylabel('frequency(Hz)')
+        axs.set_title('cwt_trans')
 
-    plt.contourf(t, frequencies, abs(cwtmatr))
-    plt.axis('off')
-    plt.gcf().set_size_inches(864 / 100, 864 / 100)
-    # 将当前图形的 X Y轴主刻度设置为空
-    plt.gca().xaxis.set_major_locator(plt.NullLocator())
-    plt.gca().yaxis.set_major_locator(plt.NullLocator())
-    # 设置图片和画布、图片和图片的间距
-    plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-    # 设置或者获取轴域的边界距离（轴两端和画布顶点的距离）
-    plt.margins(0, 0)
-    return plt.gcf()
+        is_MyFigureCanvas = True
+
+    axs.contourf(t, frequencies, abs(cwtmatr))
+    if is_MyFigureCanvas:
+        axs.clabel(plt.contour(t, frequencies, abs(cwtmatr)), inline=True, fontsize=10)
+        fig.axes[0] = axs
+
+    return fig
+
+    # plt.contourf(t, frequencies, abs(cwtmatr))
+    # plt.axis('off')
+    # plt.gcf().set_size_inches(864 / 100, 864 / 100)
+    # # 将当前图形的 X Y轴主刻度设置为空
+    # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+    # plt.gca().yaxis.set_major_locator(plt.NullLocator())
+    # # 设置图片和画布、图片和图片的间距
+    # plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+    # # 设置或者获取轴域的边界距离（轴两端和画布顶点的距离）
+    # plt.margins(0, 0)
+    # return plt.gcf()
 
 
 if __name__ == "__main__":

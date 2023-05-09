@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 import torch.optim as optim
-from utils import train
+from utils.train import train
 from utils.train import analyze
 from utils.signal_process import load_dataset
 
@@ -42,9 +42,9 @@ config = {
     "number": 1000,  # 每类样本数
     "dropout": 0.227,  # dropout率
     "batch_size": 64,  # 批量大小
-    "normal": True,  # 数据集是否归一化
+    "normal": False,  # 数据集是否归一化
     "rate": [0.5, 0.25, 0.25],  # 训练集:验证集:测试集
-    "enc": True,  # 是否采用数据增强
+    "enc": False,  # 是否采用数据增强
     "enc_step": 28,  # 数据增强步长
     # "is_shuffle": True, # 数据集是否随机
     "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),  # 设备
@@ -85,7 +85,7 @@ def train_or_test(config, train=None, test=None):
 if __name__ == "__main__":
     path = r"./datasets/12k_DE_data/0HP/"
     config["path"] = path
-    train_or_test(config, train=False, test=True)
+    train_or_test(config, train=True, test=True)
 
 
 

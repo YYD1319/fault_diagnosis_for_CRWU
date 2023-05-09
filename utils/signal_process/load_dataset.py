@@ -15,11 +15,15 @@ def data_acquision(file_path):
     param file_path: mat文件绝对路径
     return accl_data: 加速度数据，array类型
     """
-    data = loadmat(file_path)  # 加载mat数据
-    data_key_list = list(data.keys())  # mat文件为字典类型，获取字典所有的键并转换为list类型
-    accl_key = data_key_list[3]  # 获取'X108_DE_time'
-    accl_data = data[accl_key].flatten()  # 获取'X108_DE_time'所对应的值，即为振动加速度信号,并将二维数组展成一维数组
-    return accl_data
+    file = loadmat(file_path)  # 加载mat数据
+    # data_key_list = list(data.keys())  # mat文件为字典类型，获取字典所有的键并转换为list类型
+    file_keys = file.keys()
+    for key in file_keys:
+        if 'DE' in key:  # 驱动端振动数据
+            data = file[key].ravel()
+    # accl_key = data_key_list[3]  # 获取'X108_DE_time'
+    # accl_data = data[accl_key].flatten()  # 获取'X108_DE_time'所对应的值，即为振动加速度信号,并将二维数组展成一维数组
+    return data
 
 def load_1Ddata(cfg):
     def load_array(data_arrays, batch_size, is_train=True):

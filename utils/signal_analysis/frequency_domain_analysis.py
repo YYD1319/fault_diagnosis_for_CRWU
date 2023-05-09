@@ -2,10 +2,9 @@ from scipy.fftpack import fft, ifft, fftfreq, hilbert
 import numpy as np
 import matplotlib.pyplot as plt
 from utils.signal_process.load_dataset import data_acquision
-from time_domain_analysis import plt_raw_signal
 
 
-def plt_FFT(data, sampling_period):
+def plt_FFT(fig, data, sampling_period, nrows):
     # fft
     # fft_length = int(2 ** np.ceil(np.log2(data.size)))  # 将其设为2的幂次方，以保证FFT算法的效率和正确性
     Y = fft(data)
@@ -18,20 +17,22 @@ def plt_FFT(data, sampling_period):
     freq = freq[0:int(freq.size // 2)]  # 获取正频率
 
     # 绘制图像
-    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    # fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    fig.axes[nrows - 1].plot(freq, pos_Y_from_fft)
+    fig.axes[nrows - 1].set_xlabel('Frequency (Hz)')
+    fig.axes[nrows - 1].set_ylabel('amplitude spectrum')
+    fig.axes[nrows - 1].set_title('FFT of Signal')
+    fig.axes[nrows - 1].text(0.9, 0.9, 'Sampling Rate: {:.2f} Hz'.format(1 / sampling_period), ha='right', va='top', transform=fig.axes[nrows - 1].transAxes)
+    fig.axes[nrows - 1].grid(True)  # 添加网格线
+    fig.axes[nrows - 1].axis('on')
 
-    axs.plot(freq, pos_Y_from_fft)
-    axs.set_xlabel('Frequency (Hz)')
-    axs.set_ylabel('Power Spectral Density')
-    axs.set_title('FFT of Signal')
-    axs.text(0.9, 0.9, 'Sampling Rate: {:.2f} Hz'.format(1 / sampling_period), ha='right', va='top', transform=axs.transAxes)
-    axs.grid(True)  # 添加网格线
+    # plt.tight_layout()
 
-    plt.tight_layout()
-    plt.show()
+    return fig
 
 
-def plt_power_spectrum(data, sampling_period):
+
+def plt_power_spectrum(fig, data, sampling_period, nrows):
     # FFT
     # fft_length = int(2 ** np.ceil(np.log2(data.size)))
     Y = fft(data)
@@ -45,19 +46,20 @@ def plt_power_spectrum(data, sampling_period):
     freq = fftfreq(Y.size, d=sampling_period)  # 获取fft频率，此时包括正频率和负频率
     freq = freq[0:int(freq.size // 2)]  # 获取正频率
 
-    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    # fig, axs = plt.subplots(1, 1, figsize=(12, 8))
 
     # 绘制功率谱密度
-    axs.plot(freq, ps)
-    axs.set_title('Power Spectrum Density')
-    axs.set_xlabel('Frequency (Hz)')
-    axs.set_ylabel('Power')
-    axs.grid(True)  # 添加网格线
+    fig.axes[nrows - 1].plot(freq, ps)
+    fig.axes[nrows - 1].set_title('Power Spectrum')
+    fig.axes[nrows - 1].set_xlabel('Frequency (Hz)')
+    fig.axes[nrows - 1].set_ylabel('Power')
+    fig.axes[nrows - 1].grid(True)  # 添加网格线
+    fig.axes[nrows - 1].axis('on')
 
-    plt.show()
+    return fig
 
 
-def plt_cepstrum(data, sampling_period):
+def plt_cepstrum(fig, data, sampling_period, nrows):
 
     # fft_length = int(2 ** np.ceil(np.log2(data.size)))
     Y = fft(data)
@@ -71,21 +73,22 @@ def plt_cepstrum(data, sampling_period):
     freq = fftfreq(Y.size, d=sampling_period)  # 获取fft频率，此时包括正频率和负频率
     freq = freq[0:int(freq.size // 2)]  # 获取正频率
 
-    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    # fig, axs = plt.subplots(1, 1, figsize=(12, 8))
 
     # 绘制功率谱密度
-    axs.plot(freq, ceps)
-    axs.set_title('Cepstrum')
-    axs.set_xlabel('Quefrency (s)')
-    axs.set_ylabel('Magnitude')
-    axs.grid(True)  # 添加网格线
-    axs.set_ylim([0, 0.2])
+    fig.axes[nrows - 1].plot(freq, ceps)
+    fig.axes[nrows - 1].set_title('Cepstrum')
+    fig.axes[nrows - 1].set_xlabel('Quefrency (s)')
+    fig.axes[nrows - 1].set_ylabel('Magnitude')
+    fig.axes[nrows - 1].grid(True)  # 添加网格线
+    fig.axes[nrows - 1].set_ylim([0, 0.2])
+    fig.axes[nrows - 1].axis('on')
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    return fig
 
 
-def plt_envelope_spectrum(data, sampling_period, xlim=None, vline=None):
+def plt_envelope_spectrum(fig, data, sampling_period, nrows, xlim=None, vline=None):
     '''
     fun: 绘制包络谱图
     param data: 输入数据，1维array
@@ -108,21 +111,24 @@ def plt_envelope_spectrum(data, sampling_period, xlim=None, vline=None):
     freq = np.fft.fftfreq(at.size, d=sampling_period)  # 获取fft频率，此时包括正频率和负频率
     freq = freq[0:int(freq.size / 2)]  # 获取正频率
 
-    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
+    # fig, axs = plt.subplots(1, 1, figsize=(12, 8))
 
     # 绘制功率谱密度
-    axs.plot(freq, am)
-    axs.set_title('Envelope Spectrum')
-    axs.set_xlabel('freq(Hz)')
-    axs.set_ylabel('amp(m/s2)')
-    axs.grid(True)  # 添加网格线
-    axs.set_ylim([0, 0.5])
+    fig.axes[nrows - 1].plot(freq, am)
+    fig.axes[nrows - 1].set_title('Envelope Spectrum')
+    fig.axes[nrows - 1].set_xlabel('freq(Hz)')
+    fig.axes[nrows - 1].set_ylabel('amp(m/s2)')
+    fig.axes[nrows - 1].grid(True)  # 添加网格线
+    fig.axes[nrows - 1].set_ylim([0, 0.5])
+    fig.axes[nrows - 1].axis('on')
 
     # if vline:  # 是否绘制垂直线
     #     plt.vlines(x=vline, ymax=0.2, ymin=0, colors='r')  # 高度y 0-0.2，颜色红色
     # if xlim:  # 图片横坐标是否设置xlim
     #     plt.xlim(0, xlim)
-    plt.show()
+    # plt.show()
+
+    return fig
 
 if __name__ == "__main__":
     fs = 12000
@@ -131,7 +137,7 @@ if __name__ == "__main__":
     file_path = r'../../datasets/test/147.mat'
     data = data_acquision(file_path)
 
-    plt_raw_signal(data)
+    # plt_raw_signal(data)
     plt_FFT(data, sampling_period)
     plt_power_spectrum(data, sampling_period)
     plt_cepstrum(data, sampling_period)
