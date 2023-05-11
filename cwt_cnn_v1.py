@@ -76,9 +76,9 @@ def train_or_test(config, train=None, test=None):
         test_cwt_cnn_v1(config, test_iter)
 
 if __name__ == "__main__":
-    train_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\3HP\cmor3-3\train"
-    valid_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\3HP\cmor3-3\valid"
-    test_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\3HP\cmor3-3\test"
+    train_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\0HP\cmor3-3\train"
+    valid_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\0HP\cmor3-3\valid"
+    test_path = r"D:\Code\fault_diagnosis_for_CRWU\cwt_picture\0HP\cmor3-3\test"
 
     config["train_path"] = train_path
     config["valid_path"] = valid_path

@@ -441,46 +441,46 @@ class MainWindow(QMainWindow):
         # print(type(Y_hat))
 
     def predict_2dcnn(self):
-        # data = None
-        # length = 864
-        # Samples = []
-        # file = loadmat(self.data_path)
-        # file_keys = file.keys()
-        #
-        # for key in file_keys:
-        #     if 'DE' in key:  # 驱动端振动数据
-        #         data = file[key].ravel()
-        #
-        # for j in range(len(data) // length):
-        #     random_start = np.random.randint(low=0, high=(len(data) - length))
-        #     # 每次取j至j+length长度的数据
-        #     sample = data[j * length:(j + 1) * length]
-        #     # sample = data[random_start:random_start + length]
-        #     Samples.append(sample)
-        #
-        # # 归一化
-        # # scalar = preprocessing.StandardScaler().fit(Samples)
-        # # Samples = scalar.transform(Samples)
-        #
-        # Samples = np.asarray(Samples)
-        #
-        # N = length
-        # fs = self.data.fs
-        # t = np.linspace(0, N / fs, N, endpoint=False)
-        # wave_name = 'cmor3-3'
-        # total_scal = 256
-        # fc = pywt.central_frequency(wave_name)
-        # cparam = 2 * fc * total_scal  # 常数(n)影响图像分布区域
-        # scales = cparam / np.arange(total_scal, 1, -1)
-        # sampling_period = 1.0 / fs
-        #
-        # for i in range(len(Samples)):
-        #     X = Samples[i].squeeze()
-        #     fig = wavelets_trans.cwt_trans(X, t, scales, wave_name, sampling_period)
-        #
-        #     save_path = r'../datasets/cwt_picture/temp/class/' + str(i) + '.jpg'
-        #     fig.savefig(save_path)
-        #     plt.close(fig)
+        data = None
+        length = 864
+        Samples = []
+        file = loadmat(self.data_path)
+        file_keys = file.keys()
+
+        for key in file_keys:
+            if 'DE' in key:  # 驱动端振动数据
+                data = file[key].ravel()
+
+        for j in range(len(data) // length):
+            random_start = np.random.randint(low=0, high=(len(data) - length))
+            # 每次取j至j+length长度的数据
+            sample = data[j * length:(j + 1) * length]
+            # sample = data[random_start:random_start + length]
+            Samples.append(sample)
+
+        # 归一化
+        # scalar = preprocessing.StandardScaler().fit(Samples)
+        # Samples = scalar.transform(Samples)
+
+        Samples = np.asarray(Samples)
+
+        N = length
+        fs = self.data.fs
+        t = np.linspace(0, N / fs, N, endpoint=False)
+        wave_name = 'cmor3-3'
+        total_scal = 256
+        fc = pywt.central_frequency(wave_name)
+        cparam = 2 * fc * total_scal  # 常数(n)影响图像分# 布区域
+        scales = cparam / np.arange(total_scal, 1, -1)
+        sampling_period = 1.0 / fs
+
+        for i in range(len(Samples)):
+            X = Samples[i].squeeze()
+            fig = wavelets_trans.cwt_trans(X, t, scales, wave_name, sampling_period)
+
+            save_path = r'../datasets/cwt_picture/temp/class/' + str(i) + '.jpg'
+            fig.savefig(save_path)
+            plt.close(fig)
 
         data_transfrom = transforms.Compose([
             # transforms.Grayscale(),
@@ -502,7 +502,7 @@ class MainWindow(QMainWindow):
         if isinstance(net, torch.nn.Module):
             net.eval()
         with torch.no_grad():
-            for X in data_iter:
+            for X, _ in data_iter:
                 X = X.to(config_2dcnn["device"])
                 y_hat = net(X)
                 Y_hat.append(y_hat)
