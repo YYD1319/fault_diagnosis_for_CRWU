@@ -3,17 +3,19 @@ import sys
 import numpy as np
 import pywt
 
-# 1dcnn
+# predict
 from scipy.io import loadmat
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch import nn
 from collections import Counter
-from sklearn import preprocessing
 
-# 2dcnn
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
+
+from models import _1dcnn
+from models import _2dcnn
+from models import lstm
 
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QGraphicsScene
 from PySide2.QtUiTools import QUiLoader
@@ -34,76 +36,6 @@ class MyDataset(Dataset):
 
     def __getitem__(self, index):
         return self.features[index]
-
-config_1dcnn = {
-    "name": "1dcnn",
-    "dropout": 0.227,  # dropout率
-    "best_model_path": r"../models/1dcnn_v1.pt",
-    "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),  # 设备
-}
-
-config_2dcnn = {
-    "name": "2dcnn",
-    "best_model_path": r"../models/cwt_cnn_v1.pt",  # 最优模型保存路径
-    "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),  # 设备
-}
-
-class CNN1D(nn.Module):
-    def __init__(self, dropout):
-        super(CNN1D, self).__init__()
-        self.cnn1d = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=64,
-                      kernel_size=20, stride=8, padding=598),  # torch.Size([128, 32, 256]) [N, C_out, L_out]
-            # nn.BatchNorm1d(32),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=4, stride=4),  # torch.Size([128, 32, 64])
-            nn.Conv1d(in_channels=64, out_channels=64,
-                      kernel_size=5, stride=2, padding=2),  # torch.Size([128, 64, 32])
-            # nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2, stride=2),  # 输出大小：torch.Size([128, 64, 16])
-            nn.Flatten(),  # 输出大小：torch.Size([128, 1024]) 展平第一维及之后
-        )
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=64 * 16, out_features=32),
-            nn.ReLU(),
-            torch.nn.Dropout(p=dropout),
-            torch.nn.Linear(32, 10)
-        )
-
-    def forward(self, x):
-        x = self.cnn1d(x)
-        x = self.fc(x)
-        return x
-
-Conv_2D_v1 = nn.Sequential(
-    # 第一层
-    nn.Conv2d(in_channels=3, out_channels=16,
-              kernel_size=3, stride=1, padding=0),
-    nn.BatchNorm2d(16),
-    nn.ReLU(),
-    nn.MaxPool2d(kernel_size=2, stride=2),
-
-    # 第二层
-    nn.Conv2d(in_channels=16, out_channels=32,
-              kernel_size=3, stride=1, padding=0),
-    nn.BatchNorm2d(32),
-    nn.ReLU(),
-    nn.MaxPool2d(kernel_size=2, stride=2),
-
-    # # 第三层
-    # nn.Conv2d(in_channels=16, out_channels=32,
-    #           kernel_size=3, stride=1, padding=0),
-    # nn.BatchNorm2d(32),
-    # nn.ReLU(),
-
-    nn.Flatten(),
-    nn.Linear(3872, out_features=32),
-    nn.ReLU(),
-    nn.Dropout(p=0.5),
-    nn.Linear(in_features=32, out_features=10),
-    nn.Softmax(dim=1)
-)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -192,6 +124,7 @@ class MainWindow(QMainWindow):
         # 6.故障诊断
         self.ui.pushButton_predict_1dcnn.clicked.connect(self.predict_1dcnn)
         self.ui.pushButton_predict_2dcnn.clicked.connect(self.predict_2dcnn)
+        self.ui.pushButton_predict_LSTM.clicked.connect(self.predict_LSTM)
 
 
     def open_file(self):
@@ -243,10 +176,10 @@ class MainWindow(QMainWindow):
                                                                 self.data.rotation_speed
                                                                 )
 
-            self.ui.lineEdit_FTF_res.setText(f'{self.data.FTF: .2f}')
-            self.ui.lineEdit_BPFI_res.setText(f'{self.data.BPFI: .2f}')
-            self.ui.lineEdit_BPFO_res.setText(f'{self.data.BPFO: .2f}')
-            self.ui.lineEdit_BSF_res.setText(f'{self.data.BSF: .2f}')
+            self.ui.label_FTF_res.setText(f'{self.data.FTF: .2f}')
+            self.ui.label_BPFI_res.setText(f'{self.data.BPFI: .2f}')
+            self.ui.label_BPFO_res.setText(f'{self.data.BPFO: .2f}')
+            self.ui.label_BSF_res.setText(f'{self.data.BSF: .2f}')
         except Exception as e:
             print(e)
 
@@ -388,8 +321,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(e)
 
-
-    def predict_1dcnn(self):
+    def get_np_data(self):
         data = None
         length = 864
         Samples = []
@@ -412,58 +344,24 @@ class MainWindow(QMainWindow):
         # Samples = scalar.transform(Samples)
 
         Samples = np.asarray(Samples)
+
+        return Samples
+
+    def get_1d_data_iter(self):
+        Samples = self.get_np_data()
+
         Samples = Samples[:, np.newaxis, :]
         Samples = torch.tensor(Samples, dtype=torch.float)
-
 
         dataset = MyDataset(Samples)
         data_iter = DataLoader(dataset, batch_size=256, shuffle=True)
 
-        pt = torch.load(config_1dcnn["best_model_path"])
-        net = CNN1D(config_1dcnn["dropout"])
-        net.load_state_dict(pt["model_state_dict"])
-        net.to(config_1dcnn["device"])
+        return data_iter
 
-        Y_hat = []
-        if isinstance(net, torch.nn.Module):
-            net.eval()
-        with torch.no_grad():
-            for X in data_iter:
-                X = X.to(config_1dcnn["device"])
-                y_hat = net(X)
-                Y_hat.append(y_hat)
-        Y_hat = torch.cat(Y_hat, dim=0).cpu().numpy().argmax(1)
+    def get_2d_data_iter(self):
+        Samples = self.get_np_data()
 
-        target_names = ['B007', 'B014', 'B021', 'IR007', 'IR014', 'IR021', 'OR007', 'OR014', 'OR021', 'Normal']
-        self.ui.label_predict_1dcnn.setText(target_names[Counter(Y_hat).most_common(1)[0][0]])
-        # print(Y_hat.shape)
-        # print(Y_hat)
-        # print(type(Y_hat))
-
-    def predict_2dcnn(self):
-        data = None
         length = 864
-        Samples = []
-        file = loadmat(self.data_path)
-        file_keys = file.keys()
-
-        for key in file_keys:
-            if 'DE' in key:  # 驱动端振动数据
-                data = file[key].ravel()
-
-        for j in range(len(data) // length):
-            random_start = np.random.randint(low=0, high=(len(data) - length))
-            # 每次取j至j+length长度的数据
-            sample = data[j * length:(j + 1) * length]
-            # sample = data[random_start:random_start + length]
-            Samples.append(sample)
-
-        # 归一化
-        # scalar = preprocessing.StandardScaler().fit(Samples)
-        # Samples = scalar.transform(Samples)
-
-        Samples = np.asarray(Samples)
-
         N = length
         fs = self.data.fs
         t = np.linspace(0, N / fs, N, endpoint=False)
@@ -481,7 +379,7 @@ class MainWindow(QMainWindow):
             save_path = r'../datasets/cwt_picture/temp/class/' + str(i) + '.jpg'
             fig.savefig(save_path)
             plt.close(fig)
-
+        #
         data_transfrom = transforms.Compose([
             # transforms.Grayscale(),
             transforms.Resize((52, 52)),
@@ -490,26 +388,79 @@ class MainWindow(QMainWindow):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-        dataset = datasets.ImageFolder(r'D:\Code\fault_diagnosis_for_CRWU\datasets\cwt_picture\temp', transform=data_transfrom)
+        dataset = datasets.ImageFolder(r'D:\Code\fault_diagnosis_for_CRWU\datasets\cwt_picture\temp',
+                                       transform=data_transfrom)
         data_iter = DataLoader(dataset, batch_size=128, num_workers=0)
 
-        pt = torch.load(config_2dcnn["best_model_path"])
-        net = Conv_2D_v1
-        net.load_state_dict(pt["model_state_dict"])
-        net.to(config_2dcnn["device"])
+        return data_iter
 
+    def predict(self, net, data_iter, config, is_2d=False):
         Y_hat = []
         if isinstance(net, torch.nn.Module):
             net.eval()
         with torch.no_grad():
-            for X, _ in data_iter:
-                X = X.to(config_2dcnn["device"])
-                y_hat = net(X)
-                Y_hat.append(y_hat)
+            if is_2d:
+                for X, _ in data_iter:
+                    X = X.to(config["device"])
+                    y_hat = net(X)
+                    Y_hat.append(y_hat)
+            else:
+                for X in data_iter:
+                    X = X.to(config["device"])
+                    y_hat = net(X)
+                    Y_hat.append(y_hat)
         Y_hat = torch.cat(Y_hat, dim=0).cpu().numpy().argmax(1)
+
+        return Y_hat
+
+    def predict_1dcnn(self):
+        data_iter = self.get_1d_data_iter()
+
+        config = _1dcnn.config_1dcnn
+
+        pt = torch.load(config["best_model_path"])
+        net = _1dcnn.CNN1D(config["dropout"])
+        net.load_state_dict(pt["model_state_dict"])
+        net.to(config["device"])
+
+        Y_hat = self.predict(net, data_iter, config)
+
+        target_names = ['B007', 'B014', 'B021', 'IR007', 'IR014', 'IR021', 'OR007', 'OR014', 'OR021', 'Normal']
+        self.ui.label_predict_1dcnn.setText(target_names[Counter(Y_hat).most_common(1)[0][0]])
+        # print(Y_hat.shape)
+        # print(Y_hat)
+        # print(type(Y_hat))
+
+    def predict_2dcnn(self):
+        data_iter = self.get_2d_data_iter()
+
+        config = _2dcnn.config_2dcnn
+
+        pt = torch.load(config["best_model_path"])
+        net = _2dcnn.CNN2D()
+        net.load_state_dict(pt["model_state_dict"])
+        net.to(config["device"])
+
+        Y_hat = self.predict(net, data_iter, config, is_2d=True)
 
         target_names = ['B007', 'B014', 'B021', 'IR007', 'IR014', 'IR021', 'OR007', 'OR014', 'OR021', 'Normal']
         self.ui.label_predict_2dcnn.setText(target_names[Counter(Y_hat).most_common(1)[0][0]])
+
+    def predict_LSTM(self):
+        data_iter = self.get_1d_data_iter()
+
+        config = lstm.config_lstm
+
+
+        pt = torch.load(config["best_model_path"])
+        net = lstm.LSTM(config["input_size"], config["hidden_dim"], config["layer_dim"], config["num_classes"], config["dropout"])
+        net.load_state_dict(pt["model_state_dict"])
+        net.to(config["device"])
+
+        Y_hat = self.predict(net, data_iter, config)
+
+        target_names = ['B007', 'B014', 'B021', 'IR007', 'IR014', 'IR021', 'OR007', 'OR014', 'OR021', 'Normal']
+        self.ui.label_predict_LSTM.setText(target_names[Counter(Y_hat).most_common(1)[0][0]])
 
 
 

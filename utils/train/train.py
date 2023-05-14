@@ -6,6 +6,24 @@ import time
 import numpy as np
 from ray import tune
 
+def draw_kfold_curve(k, x_val_list, y_val_list, x_label, y_label, title, x2_val_list=None, y2_val_list=None, le=None, figsize=(40, 5)):
+    fig, axs = plt.subplots(nrows=1, ncols=k, figsize=figsize)
+    #在[i]个子图上绘制两条曲线，曲线一的x值为x_val_list[i]，y值为y_val_list[i]，曲线二的x值为x2_val_list[i]，y值为y2_val_list[i]
+    #设置画布大小
+    display.set_matplotlib_formats('svg')
+    # 设置画布的名字
+    fig.suptitle(title)
+
+    for i in range(k):
+        axs[i].set_xlabel(x_label)
+        axs[i].set_ylabel(y_label)
+        axs[i].semilogy(x_val_list, y_val_list[i], label='2')
+        if x2_val_list and y2_val_list:
+            axs[i].semilogy(x2_val_list, y2_val_list[i], linestyle=':', label='1')
+        axs[i].legend(le)
+        axs[i].set_title("Fold:{}".format(i+1))
+    plt.show()
+    plt.close()
 
 def draw_curve(x_val, y_val, x_label, y_label, title, x2_val=None, y2_val=None, le=None, figsize=(7, 5)):
     display.set_matplotlib_formats('svg')
@@ -61,12 +79,19 @@ def train_epoch(net, train_iter, loss_func, updater, device):
     return loss_sum / n, acc / n
 
 
-def train(net, train_iter, valid_iter, loss, updater, cfg):
+def train(net, train_iter, valid_iter, loss, updater, cfg, kfold=False):
     net.to(cfg["device"])
+
     print("epoch\ttrain_loss\ttest_loss\ttrain_acc\ttest_acc\ttrain_time")
     train_loss_list, test_loss_list, train_acc_list, test_acc_list = [], [], [], []
     best_loss = float('inf')
-    for epoch in range(cfg["epochs"]):
+
+    if kfold:
+        epochs = cfg["kfold_epochs"]
+    else:
+        epochs = cfg["epochs"]
+
+    for epoch in range(epochs):
         epoch_start = time.time()
         train_loss, train_acc = train_epoch(net, train_iter, loss, updater, cfg["device"])
         test_loss, test_acc = evaluate(net, valid_iter, loss, cfg["device"])
@@ -81,7 +106,7 @@ def train(net, train_iter, valid_iter, loss, updater, cfg):
 
         train_time = (time.time() - epoch_start)
         if cfg["show"]:
-            print("%d\t\t%f\t%f\t%f\t%f\t%.6fs" % (epoch + 1, train_loss, test_loss, train_acc, test_acc, train_time))
+            print("%d\t\t%f\t%f\t%f\t%f\t%.2fs" % (epoch + 1, train_loss, test_loss, train_acc, test_acc, train_time))
 
         train_loss_list.append(train_loss.cpu().detach().numpy())
         test_loss_list.append(test_loss.cpu().detach().numpy())
@@ -91,12 +116,15 @@ def train(net, train_iter, valid_iter, loss, updater, cfg):
         # test_log_list.append(test_log)
 
     # plt.subplots_adjust(wspace=0.2,hspace=0.5)
-    if cfg["show"]:
-        draw_curve(range(1, cfg["epochs"] + 1), train_loss_list, 'epochs', 'loss', 'training and validation loss(' + cfg["name"] + ')',
-                   range(1, cfg["epochs"] + 1), test_loss_list,
-                   ['train', 'valid'])
-        draw_curve(range(1, cfg["epochs"] + 1), train_acc_list, 'epochs', 'acc', 'training and validation accuracy(' + cfg["name"] + ')',
-                   range(1, cfg["epochs"] + 1), test_acc_list,
-                   ['train', 'valid'])
-    if cfg["tune"]:
-        tune.report(loss=sum(test_loss_list) / len(train_loss_list) , accuracy=sum(test_acc_list) / len(train_loss_list))
+    if kfold:
+        return train_loss_list, test_loss_list, train_acc_list, test_acc_list
+    else:
+        if cfg["show"]:
+            draw_curve(range(1, epochs + 1), train_loss_list, 'epochs', 'loss', 'training and validation loss(' + cfg["name"] + ')',
+                       range(1, epochs + 1), test_loss_list,
+                       ['train', 'valid'])
+            draw_curve(range(1, epochs + 1), train_acc_list, 'epochs', 'acc', 'training and validation accuracy(' + cfg["name"] + ')',
+                       range(1, epochs + 1), test_acc_list,
+                       ['train', 'valid'])
+        if cfg["tune"]:
+            tune.report(loss=sum(test_loss_list) / len(train_loss_list) , accuracy=sum(test_acc_list) / len(train_loss_list))

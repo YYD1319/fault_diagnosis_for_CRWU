@@ -271,8 +271,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>381</width>
-       <height>275</height>
+       <width>98</width>
+       <height>28</height>
       </rect>
      </property>
      <attribute name="label">
@@ -521,8 +521,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>381</width>
-       <height>275</height>
+       <width>98</width>
+       <height>28</height>
       </rect>
      </property>
      <attribute name="label">
@@ -874,8 +874,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>381</width>
-       <height>275</height>
+       <width>98</width>
+       <height>28</height>
       </rect>
      </property>
      <attribute name="label">
@@ -1045,8 +1045,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>381</width>
-       <height>275</height>
+       <width>98</width>
+       <height>28</height>
       </rect>
      </property>
      <attribute name="label">
@@ -1275,6 +1275,73 @@
           </property>
          </widget>
          <widget class="QLabel" name="label_7">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>22</y>
+            <width>54</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>故障类别:</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QGroupBox" name="groupBox_9">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>160</y>
+           <width>361</width>
+           <height>77</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>LSTM</string>
+         </property>
+         <widget class="QPushButton" name="pushButton_predict_LSTM">
+          <property name="geometry">
+           <rect>
+            <x>236</x>
+            <y>44</y>
+            <width>75</width>
+            <height>23</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>诊断</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_predict_LSTM">
+          <property name="geometry">
+           <rect>
+            <x>70</x>
+            <y>20</y>
+            <width>84</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: 1px solid white;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_9">
           <property name="geometry">
            <rect>
             <x>10</x>

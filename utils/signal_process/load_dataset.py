@@ -1,7 +1,8 @@
 import torch
 import torch.utils.data as data
+from torch.utils.data import ConcatDataset
 from torch.utils.data import SubsetRandomSampler
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -54,46 +55,69 @@ def load_1Ddata(cfg):
 
     return train_iter, test_iter, valid_iter
 
+def get_kfold_dataset(dataset_path, rate, size):
+    data_transfrom = transforms.Compose([
+        # transforms.Grayscale(),
+        transforms.Resize((size, size)),
+        # transforms.RandomHorizontalFlip(0.1),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
 
-def load_2Ddata(cfg):
-    def dataset_sampler(dataset, val_percentage=0.1):
-        """
-        split dataset into train set and val set
-        :param dataset:
-        :param val_percentage: validation percentage
-        :return: split sampler
-        """
-        sample_num = len(dataset)
-        file_idx = list(range(sample_num))
-        train_idx, val_idx = train_test_split(file_idx, test_size=val_percentage, random_state=42)
-        train_sampler = SubsetRandomSampler(train_idx)
-        val_sampler = SubsetRandomSampler(val_idx)
-        # https://blog.csdn.net/weixin_43914889/article/details/104607114
-        # https://blog.csdn.net/qq_39355550/article/details/82688014
-        return train_sampler, val_sampler
+    dataset = datasets.ImageFolder(dataset_path, transform=data_transfrom)
+    train_valid_size = int(rate * len(dataset))
+    test_size = len(dataset) - train_valid_size
+    train_valid_dataset, test_dataset = torch.utils.data.random_split(dataset,
+                                                                      [train_valid_size, test_size])
 
-    def load_data(train_path, valid_path, test_path, size, val_percentage, batch_size):
-        data_transfrom = transforms.Compose([
-            # transforms.Grayscale(),
-            transforms.Resize((size, size)),
-            # transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-        # dataset = datasets.ImageFolder(train_path, transform=data_transfrom)
+    return train_valid_dataset, test_dataset
 
-        train_dataset = datasets.ImageFolder(train_path, transform=data_transfrom)  # 没有transform，先看看取得的原始图像数据
-        valid_dataset = datasets.ImageFolder(valid_path, transform=data_transfrom)
-        test_dataset = datasets.ImageFolder(test_path, transform=data_transfrom)
+def get_kfold_test_iter(dataset, batch_size):
+    return DataLoader(dataset, batch_size=batch_size, num_workers=0)
+
+def get_kfold_train_vaalid_iter(dataset, k, batch_size, shuffle=True):
+    # 划分 k 个子集
+    subsets = []
+    subset_size = len(dataset) // k
+    for i in range(k):
+        start_index = i * subset_size
+        end_index = start_index + subset_size
+        if i == k - 1:
+            end_index = len(dataset)
+        subset = Subset(dataset, range(start_index, end_index))
+        subsets.append(subset)
+
+    # 生成 k 折交叉验证的训练集和验证集 DataLoader
+    for i in range(k):
+        val_subset = subsets[i]
+        train_subsets = subsets[:i] + subsets[i + 1:]
+        train_dataset = ConcatDataset(train_subsets)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
+        val_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=shuffle)
+        yield train_loader, val_loader, i
 
 
-        # train_sampler, val_sampler = dataset_sampler(dataset, val_percentage)
 
-        # dataloader定义
-        train_iter = DataLoader(train_dataset, batch_size=batch_size, num_workers=0)
-        valid_iter = DataLoader(valid_dataset, batch_size=batch_size, num_workers=0)
-        test_iter = DataLoader(test_dataset, batch_size=batch_size, num_workers=0)
+def load_2Ddata(dataset_path, rate, batch_size, size):
+    data_transfrom = transforms.Compose([
+        # transforms.Grayscale(),
+        transforms.Resize((size, size)),
+        # transforms.RandomHorizontalFlip(0.1),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
 
-        return train_iter, valid_iter, test_iter
+    dataset = datasets.ImageFolder(dataset_path, transform=data_transfrom)
 
-    return load_data(cfg["train_path"], cfg["valid_path"], cfg["test_path"], cfg["size"], cfg["val_percentage"], cfg["batch_size"])
+    train_size = int(rate[0] * len(dataset))
+    valid_size = int(rate[1] * len(dataset))
+    test_size = len(dataset) - train_size - valid_size
+    train_dataset, valid_dataset, test_dataset = torch.utils.data.random_split(dataset,
+                                                                               [train_size, valid_size, test_size])
+
+    # dataloader定义
+    train_iter = DataLoader(train_dataset, batch_size=batch_size, num_workers=0)
+    valid_iter = DataLoader(valid_dataset, batch_size=batch_size, num_workers=0)
+    test_iter = DataLoader(test_dataset, batch_size=batch_size, num_workers=0)
+
+    return train_iter, valid_iter, test_iter

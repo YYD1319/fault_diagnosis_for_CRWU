@@ -21,12 +21,12 @@ def cwt_trans_for_dataset(dataset_X, dataset_Y, save_path, t, scales, wave_name,
 
         fig = cwt_trans(data, t, scales, wave_name, sampling_period)
 
-        x = save_path + str(np.argmax(dataset_Y[i])) + r'/' + str(list[np.argmax(dataset_Y[i])]) + '.jpg'
+        x = save_path + str(dataset_Y[i]) + r'/' + str(list[np.argmax(dataset_Y[i])]) + '_' + str(dataset_Y[i]) +'.jpg'
         fig.savefig(x)
         list[np.argmax(dataset_Y[i])] += 1
         plt.close(fig)
         if i % 100 == 0 and i > 0:
-            print('已保存{}张cwt图片---{}'.format(i, time.time() - time0))
+            print('已保存{}张cwt图片---{:.2f}'.format(i, time.time() - time0))
             time0 = time.time()
     print('共保存{}张cwt图片'.format(len(dataset_X)))
 
@@ -81,14 +81,16 @@ def cwt_trans(data, t, scales, wave_name, sampling_period, fig=None):
 
 
 if __name__ == "__main__":
-    path = r'../../datasets/12K_DE_data/0HP'
+    path = r'../../datasets/12K_DE_data/3HP'
     train_X, train_Y, valid_X, valid_Y, test_X, test_Y = preprocess.prepro(d_path=path,
                                                                            length=864,
                                                                            number=1000,
-                                                                           normal=True,
+                                                                           normal=False,
                                                                            rate=[0.5, 0.25, 0.25],
-                                                                           enc=False,
+                                                                           enc=True,
                                                                            enc_step=28)
+    all_data_X = np.concatenate((train_X, valid_X, test_X))
+    all_data_Y = np.concatenate((train_Y, valid_Y, test_Y))
 
     # train_X, valid_X, test_X = \
     #     train_X[:, np.newaxis, :], valid_X[:, np.newaxis, :], test_X[:, np.newaxis, :]
@@ -103,11 +105,14 @@ if __name__ == "__main__":
     cparam = 2 * fc * total_scal  # 常数(n)影响图像分布区域
     scales = cparam / np.arange(total_scal, 1, -1)
     sampling_period = 1.0 / fs
+    path = r'../../datasets/cwt_picture/cmor3-3_10000_3HP/'
 
-    path_train = r'../../datasets/cwt_picture/0HP/cmor3-3/train/'
-    path_valid = r'../../datasets/cwt_picture/0HP/cmor3-3/valid/'
-    path_test = r'../../datasets/cwt_picture/0HP/cmor3-3/test/'
+    cwt_trans_for_dataset(all_data_X, all_data_Y, path, t, scales, wave_name, sampling_period)
 
-    cwt_trans_for_dataset(train_X, train_Y, path_train, t, scales, wave_name, sampling_period)
-    cwt_trans_for_dataset(valid_X, valid_Y, path_valid, t, scales, wave_name, sampling_period)
-    cwt_trans_for_dataset(test_X, test_Y, path_test, t, scales, wave_name, sampling_period)
+    # path_train = r'../../datasets/cwt_picture/0HP/cmor3-3/train/'
+    # path_valid = r'../../datasets/cwt_picture/0HP/cmor3-3/valid/'
+    # path_test = r'../../datasets/cwt_picture/0HP/cmor3-3/test/'
+    #
+    # cwt_trans_for_dataset(train_X, train_Y, path_train, t, scales, wave_name, sampling_period)
+    # cwt_trans_for_dataset(valid_X, valid_Y, path_valid, t, scales, wave_name, sampling_period)
+    # cwt_trans_for_dataset(test_X, test_Y, path_test, t, scales, wave_name, sampling_period)

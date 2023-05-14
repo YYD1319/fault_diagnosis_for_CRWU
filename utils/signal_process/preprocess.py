@@ -87,15 +87,15 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
                     sample = slice_data[random_start:random_start + length]
                     Train_sample.append(sample)
             # 抓取测试数据
-            # for h in range(number - samp_train):
-            #     random_start = np.random.randint(low=end_index, high=(all_lenght - length))
-            #     sample = slice_data[random_start:random_start + length]
+            for h in range(number - samp_train):
+                random_start = np.random.randint(low=end_index, high=(all_lenght - length))
+                sample = slice_data[random_start:random_start + length]
 
-            for h in range(len(slice_data) // length):
-                random_start = np.random.randint(low=0, high=(len(slice_data) - length))
-                # 每次取j至j+length长度的数据
-                sample = slice_data[h * length:(h + 1) * length]
-                # sample = slice_data[random_start:random_start + length]
+            # for h in range(len(slice_data) // length):
+            #     random_start = np.random.randint(low=0, high=(len(slice_data) - length))
+            #     # 每次取j至j+length长度的数据
+            #     sample = slice_data[h * length:(h + 1) * length]
+            #     # sample = slice_data[random_start:random_start + length]
 
                 Test_Sample.append(sample)
 
