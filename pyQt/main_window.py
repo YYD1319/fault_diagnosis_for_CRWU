@@ -12,6 +12,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
+from sklearn import preprocessing
 
 from models import _1dcnn
 from models import _2dcnn
@@ -339,11 +340,11 @@ class MainWindow(QMainWindow):
             # sample = data[random_start:random_start + length]
             Samples.append(sample)
 
-        # 归一化
-        # scalar = preprocessing.StandardScaler().fit(Samples)
-        # Samples = scalar.transform(Samples)
 
         Samples = np.asarray(Samples)
+
+        # scalar = preprocessing.StandardScaler().fit(Samples)
+        # Samples = scalar.transform(Samples)
 
         return Samples
 

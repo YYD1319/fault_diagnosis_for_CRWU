@@ -99,6 +99,8 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
 
                 Test_Sample.append(sample)
 
+            # Train_sample, Test_Sample = scalar_stand(Train_sample, Test_Sample)
+
             Train_Samples[i] = Train_sample
             Test_Samples[i] = Test_Sample
         return Train_Samples, Test_Samples
@@ -115,18 +117,6 @@ def prepro(d_path, length=864, number=1000, normal=True, rate=[0.7, 0.2, 0.1], e
             Y += [label] * lenx
             label += 1
         return X, Y
-
-    # one-hot编码
-    def one_hot(Train_Y, Test_Y):
-        Train_Y = np.array(Train_Y).reshape([-1, 1])
-        Test_Y = np.array(Test_Y).reshape([-1, 1])
-        Encoder = preprocessing.OneHotEncoder()
-        Encoder.fit(Train_Y)  # 确定编码的对应关系
-        Train_Y = Encoder.transform(Train_Y).toarray()  # 编码
-        Test_Y = Encoder.transform(Test_Y).toarray()
-        Train_Y = np.asarray(Train_Y, dtype=np.int32)
-        Test_Y = np.asarray(Test_Y, dtype=np.int32)
-        return Train_Y, Test_Y
 
     def scalar_stand(Train_X, Test_X):
         # 用训练集标准差标准化训练集以及测试集

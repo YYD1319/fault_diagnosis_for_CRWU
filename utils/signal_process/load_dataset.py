@@ -57,7 +57,7 @@ def load_1Ddata(cfg):
 
 def get_kfold_dataset(dataset_path, rate, size):
     data_transfrom = transforms.Compose([
-        # transforms.Grayscale(),
+        transforms.Grayscale(num_output_channels=3),
         transforms.Resize((size, size)),
         # transforms.RandomHorizontalFlip(0.1),
         transforms.ToTensor(),
@@ -100,7 +100,7 @@ def get_kfold_train_vaalid_iter(dataset, k, batch_size, shuffle=True):
 
 def load_2Ddata(dataset_path, rate, batch_size, size):
     data_transfrom = transforms.Compose([
-        # transforms.Grayscale(),
+        transforms.Grayscale(num_output_channels=3),
         transforms.Resize((size, size)),
         # transforms.RandomHorizontalFlip(0.1),
         transforms.ToTensor(),

@@ -55,16 +55,21 @@ def train_or_test(cfg, kfold=False, train=False, test=False, load_existing_model
         if train:
             train_cwt_cnn_v1(cfg, train_iter=None, valid_iter=None, kfold=kfold, train_valid_dataset=train_valid_dataset, load_existing_model=load_existing_model)
 
-            test_iter = load_dataset.get_kfold_test_iter(test_dataset, cfg["batch_size"])
-            test_cwt_cnn_v1(cfg, test_iter)
+            # test_iter = load_dataset.get_kfold_test_iter(test_dataset, cfg["batch_size"])
+            # test_cwt_cnn_v1(cfg, test_iter)
 
     else:
         # 读取数据集
-        train_iter, valid_iter, test_iter = load_dataset.load_2Ddata(cfg["dataset_path"], cfg["rate"], cfg["batch_size"], cfg["size"])
+        train_iter, valid_iter, test_iter = load_dataset.load_2Ddata(cfg["dataset_path"], cfg["rate"],
+                                                                     cfg["batch_size"], cfg["size"])
 
         if train:
+
             train_cwt_cnn_v1(cfg, train_iter, valid_iter, load_existing_model=load_existing_model)
         if test:
+            cfg["rate"] = [0, 0, 1]
+            train_iter, valid_iter, test_iter = load_dataset.load_2Ddata(cfg["dataset_path"], cfg["rate"],
+                                                                         cfg["batch_size"], cfg["size"])
             test_cwt_cnn_v1(cfg, test_iter)
 
 if __name__ == "__main__":
@@ -74,14 +79,14 @@ if __name__ == "__main__":
 
     config = _2dcnn.config_2dcnn
 
-    config["dataset_path"] = r"../datasets/cwt_picture/cmor3-3_10000_3HP/"
-    config["best_model_path"] = r"../models/largeKernel_{}_kfold_{}_best_model.pt".format(config["name"], config["k"])
+    config["dataset_path"] = r"../datasets/cwt_picture/cmor3-3_4000_train/"
+    config["best_model_path"] = r"../models/gary_largeKernel_{}_kfold_{}_best_model_12k.pt".format(config["name"], config["k"])
 
 
     # config["train_path"] = train_path
     # config["valid_path"] = valid_path
     # config["test_path"] = test_path
 
-    train_or_test(config, kfold=False, train=False, test=True, load_existing_model=True)
+    train_or_test(config, kfold=True, train=True, test=True, load_existing_model=False)
 
 

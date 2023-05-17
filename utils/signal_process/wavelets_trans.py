@@ -21,7 +21,7 @@ def cwt_trans_for_dataset(dataset_X, dataset_Y, save_path, t, scales, wave_name,
 
         fig = cwt_trans(data, t, scales, wave_name, sampling_period)
 
-        x = save_path + str(dataset_Y[i]) + r'/' + str(list[np.argmax(dataset_Y[i])]) + '_' + str(dataset_Y[i]) +'.jpg'
+        x = save_path + str(dataset_Y[i]) + r'/' + str(list[np.argmax(dataset_Y[i])]) + '_' + save_path.split('/')[-2].split('_')[-1] +'.jpg'
         fig.savefig(x)
         list[np.argmax(dataset_Y[i])] += 1
         plt.close(fig)
@@ -81,10 +81,10 @@ def cwt_trans(data, t, scales, wave_name, sampling_period, fig=None):
 
 
 if __name__ == "__main__":
-    path = r'../../datasets/12K_DE_data/3HP'
+    path = r'../../datasets/12K_DE_data/1HP'
     train_X, train_Y, valid_X, valid_Y, test_X, test_Y = preprocess.prepro(d_path=path,
                                                                            length=864,
-                                                                           number=1000,
+                                                                           number=100,
                                                                            normal=False,
                                                                            rate=[0.5, 0.25, 0.25],
                                                                            enc=True,
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     cparam = 2 * fc * total_scal  # 常数(n)影响图像分布区域
     scales = cparam / np.arange(total_scal, 1, -1)
     sampling_period = 1.0 / fs
-    path = r'../../datasets/cwt_picture/cmor3-3_10000_3HP/'
+    path = r'../../datasets/cwt_picture/cmor3-3_1000_2HP/'
 
     cwt_trans_for_dataset(all_data_X, all_data_Y, path, t, scales, wave_name, sampling_period)
 
